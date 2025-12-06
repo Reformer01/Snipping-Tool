@@ -45,66 +45,149 @@ class SnippingTool(ctk.CTk):
 
         # --- Main Window Setup ---
         self.title("Clippr")
-        self.geometry("350x280")
+        self.geometry("380x380")
         self.resizable(False, False)
         self.attributes('-topmost', True)  # Keep the tool floating above others
 
         # --- UI Components ---
         self.grid_columnconfigure(0, weight=1)
         
-        self.lbl_title = ctk.CTkLabel(self, text="Clippr", font=("Roboto Medium", 22))
-        self.lbl_title.grid(row=0, column=0, pady=(15, 10))
+        # Header Section
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 10))
+        header_frame.grid_columnconfigure(0, weight=1)
+        
+        self.lbl_title = ctk.CTkLabel(
+            header_frame,
+            text="Clippr",
+            font=("Roboto Medium", 28),
+            text_color="#E63946"
+        )
+        self.lbl_title.grid(row=0, column=0)
+        
+        subtitle = ctk.CTkLabel(
+            header_frame,
+            text="Professional Snipping Tool",
+            font=("Roboto", 10),
+            text_color="gray"
+        )
+        subtitle.grid(row=1, column=0, pady=(5, 0))
+
+        # Settings Section
+        settings_frame = ctk.CTkFrame(self)
+        settings_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=10)
+        settings_frame.grid_columnconfigure(1, weight=1)
 
         # Snip Type Selection
-        self.snip_type_var = ctk.StringVar(value="Rectangular")
-        self.snip_type_label = ctk.CTkLabel(self, text="Snip Type:", font=("Roboto", 12))
-        self.snip_type_label.grid(row=1, column=0, sticky="w", padx=20)
+        snip_label = ctk.CTkLabel(settings_frame, text="Snip Type:", font=("Roboto", 11, "bold"))
+        snip_label.grid(row=0, column=0, sticky="w", padx=15, pady=(15, 5))
         
+        self.snip_type_var = ctk.StringVar(value="Rectangular")
         self.snip_type_menu = ctk.CTkOptionMenu(
-            self,
+            settings_frame,
             values=["Rectangular", "Window", "Fullscreen"],
             variable=self.snip_type_var,
-            width=250
+            width=200,
+            font=("Roboto", 11)
         )
-        self.snip_type_menu.grid(row=2, column=0, pady=(5, 10), padx=20, sticky="ew")
+        self.snip_type_menu.grid(row=0, column=1, sticky="ew", padx=(0, 15), pady=(15, 5))
+        
+        # Window snip availability indicator
+        if not PYGETWINDOW_AVAILABLE:
+            window_status = ctk.CTkLabel(
+                settings_frame,
+                text="⚠ Window Snip unavailable",
+                font=("Roboto", 8),
+                text_color="#FCBF49"
+            )
+            window_status.grid(row=0, column=2, padx=(5, 15), pady=(15, 5))
 
         # Timer Dropdown
-        self.timer_var = ctk.StringVar(value="No Delay")
-        self.timer_label = ctk.CTkLabel(self, text="Delay Timer:", font=("Roboto", 12))
-        self.timer_label.grid(row=3, column=0, sticky="w", padx=20)
+        timer_label = ctk.CTkLabel(settings_frame, text="Delay Timer:", font=("Roboto", 11, "bold"))
+        timer_label.grid(row=1, column=0, sticky="w", padx=15, pady=5)
         
+        self.timer_var = ctk.StringVar(value="No Delay")
         self.timer_menu = ctk.CTkOptionMenu(
-            self,
+            settings_frame,
             values=["No Delay", "3 Seconds", "5 Seconds", "10 Seconds"],
             variable=self.timer_var,
-            width=250
+            width=200,
+            font=("Roboto", 11)
         )
-        self.timer_menu.grid(row=4, column=0, pady=(5, 10), padx=20, sticky="ew")
+        self.timer_menu.grid(row=1, column=1, sticky="ew", padx=(0, 15), pady=5)
 
         # Auto-Copy Checkbox
         self.auto_copy_var = ctk.BooleanVar(value=True)
         self.auto_copy_cb = ctk.CTkCheckBox(
-            self,
+            settings_frame,
             text="Auto-Copy to Clipboard",
             variable=self.auto_copy_var,
             font=("Roboto", 11)
         )
-        self.auto_copy_cb.grid(row=5, column=0, pady=(5, 10))
+        self.auto_copy_cb.grid(row=2, column=0, columnspan=2, sticky="w", padx=15, pady=(5, 15))
 
-        # New Snip Button
+        # Main Action Button
+        action_frame = ctk.CTkFrame(self, fg_color="transparent")
+        action_frame.grid(row=2, column=0, sticky="ew", padx=20, pady=10)
+        action_frame.grid_columnconfigure(0, weight=1)
+        
         self.btn_snip = ctk.CTkButton(
-            self,
-            text="NEW SNIP",
-            height=40,
+            action_frame,
+            text="🖼️ NEW SNIP",
+            height=45,
             fg_color="#E63946",
             hover_color="#D62828",
-            font=("Roboto", 14, "bold"),
-            command=self.start_snip
+            font=("Roboto", 15, "bold"),
+            command=self.start_snip,
+            corner_radius=10
         )
-        self.btn_snip.grid(row=6, column=0, pady=10, padx=20, sticky="ew")
+        self.btn_snip.grid(row=0, column=0, sticky="ew")
+        
+        # Bind Enter key for quick snip
+        self.bind("<Return>", lambda e: self.start_snip())
+        self.btn_snip.bind("<Return>", lambda e: self.start_snip())
 
-        self.lbl_status = ctk.CTkLabel(self, text="Ready", text_color="gray", font=("Roboto", 10))
-        self.lbl_status.grid(row=7, column=0, pady=(5, 10))
+        # Status Section
+        status_frame = ctk.CTkFrame(self, fg_color="transparent")
+        status_frame.grid(row=3, column=0, sticky="ew", padx=20, pady=(0, 10))
+        status_frame.grid_columnconfigure(0, weight=1)
+        
+        self.lbl_status = ctk.CTkLabel(
+            status_frame,
+            text="Ready",
+            text_color="#2a9d8f",
+            font=("Roboto", 10, "bold")
+        )
+        self.lbl_status.grid(row=0, column=0)
+        
+        # Feature Status Indicators
+        features_frame = ctk.CTkFrame(self, fg_color="transparent")
+        features_frame.grid(row=4, column=0, sticky="ew", padx=20, pady=(0, 15))
+        
+        feature_statuses = []
+        if WIN32_AVAILABLE:
+            feature_statuses.append("✓ Clipboard")
+        else:
+            feature_statuses.append("✗ Clipboard")
+            
+        if PYGETWINDOW_AVAILABLE:
+            feature_statuses.append("✓ Window Snip")
+        else:
+            feature_statuses.append("✗ Window Snip")
+            
+        if PYTESSERACT_AVAILABLE:
+            feature_statuses.append("✓ OCR")
+        else:
+            feature_statuses.append("✗ OCR")
+        
+        status_text = " | ".join(feature_statuses)
+        features_label = ctk.CTkLabel(
+            features_frame,
+            text=status_text,
+            font=("Roboto", 8),
+            text_color="gray"
+        )
+        features_label.pack()
 
         # --- State Variables ---
         self.start_x = 0
@@ -288,7 +371,8 @@ class SnippingTool(ctk.CTk):
         """Opens the editor window with drawing tools, shapes, and crop."""
         editor = ctk.CTkToplevel(self)
         editor.title("Snip Editor - Clippr")
-        editor.geometry("900x700")
+        editor.geometry("1000x750")
+        editor.attributes('-topmost', True)
         
         # Store image reference
         editor.original_image = image.copy()
@@ -302,6 +386,7 @@ class SnippingTool(ctk.CTk):
         editor.start_y = 0
         editor.shapes = []
         editor.current_shape = None
+        editor.tool_buttons = {}  # Store tool buttons for highlighting
         
         # Calculate display size
         max_width, max_height = 800, 500
@@ -321,74 +406,85 @@ class SnippingTool(ctk.CTk):
         
         # Toolbar Frame
         toolbar = ctk.CTkFrame(editor)
-        toolbar.pack(fill="x", padx=10, pady=10)
+        toolbar.pack(fill="x", padx=15, pady=(15, 10))
+        toolbar.grid_columnconfigure(1, weight=1)
         
-        # Drawing Tools
-        tools_label = ctk.CTkLabel(toolbar, text="Tools:", font=("Roboto", 12, "bold"))
-        tools_label.pack(side="left", padx=10)
+        # Left side - Drawing Tools Section
+        drawing_section = ctk.CTkFrame(toolbar, fg_color="transparent")
+        drawing_section.grid(row=0, column=0, sticky="w", padx=10, pady=10)
         
-        btn_pen = ctk.CTkButton(
-            toolbar, text="Pen", width=80, height=30,
-            command=lambda: setattr(editor, 'tool', 'pen'),
-            fg_color=("#E63946" if editor.tool == "pen" else "#2b2b2b")
+        tools_label = ctk.CTkLabel(
+            drawing_section,
+            text="Drawing Tools:",
+            font=("Roboto", 11, "bold")
         )
-        btn_pen.pack(side="left", padx=5)
+        tools_label.grid(row=0, column=0, columnspan=6, sticky="w", pady=(0, 8))
         
-        btn_highlighter = ctk.CTkButton(
-            toolbar, text="Highlighter", width=80, height=30,
-            command=lambda: setattr(editor, 'tool', 'highlighter'),
-            fg_color=("#E63946" if editor.tool == "highlighter" else "#2b2b2b")
+        def create_tool_button(parent, tool_name, text, row, col):
+            """Helper to create tool buttons with proper highlighting."""
+            btn = ctk.CTkButton(
+                parent,
+                text=text,
+                width=75,
+                height=32,
+                font=("Roboto", 10),
+                command=lambda: self.set_tool(editor, tool_name),
+                fg_color=("#E63946" if editor.tool == tool_name else "#2b2b2b"),
+                hover_color=("#D62828" if editor.tool == tool_name else "#3a3a3a")
+            )
+            btn.grid(row=row, column=col, padx=3, pady=2)
+            editor.tool_buttons[tool_name] = btn
+            return btn
+        
+        # Drawing tools row
+        create_tool_button(drawing_section, "pen", "✏️ Pen", 1, 0)
+        create_tool_button(drawing_section, "highlighter", "🖍️ Highlighter", 1, 1)
+        
+        # Shape tools row
+        create_tool_button(drawing_section, "arrow", "➡️ Arrow", 1, 2)
+        create_tool_button(drawing_section, "rectangle", "▭ Rectangle", 1, 3)
+        create_tool_button(drawing_section, "circle", "○ Circle", 1, 4)
+        create_tool_button(drawing_section, "crop", "✂️ Crop", 1, 5)
+        
+        # Right side - Color Selection
+        color_section = ctk.CTkFrame(toolbar, fg_color="transparent")
+        color_section.grid(row=0, column=1, sticky="e", padx=10, pady=10)
+        
+        color_label = ctk.CTkLabel(
+            color_section,
+            text="Color:",
+            font=("Roboto", 11, "bold")
         )
-        btn_highlighter.pack(side="left", padx=5)
-        
-        # Shape Tools
-        btn_arrow = ctk.CTkButton(
-            toolbar, text="Arrow", width=80, height=30,
-            command=lambda: setattr(editor, 'tool', 'arrow'),
-            fg_color=("#E63946" if editor.tool == "arrow" else "#2b2b2b")
-        )
-        btn_arrow.pack(side="left", padx=5)
-        
-        btn_rect = ctk.CTkButton(
-            toolbar, text="Rectangle", width=80, height=30,
-            command=lambda: setattr(editor, 'tool', 'rectangle'),
-            fg_color=("#E63946" if editor.tool == "rectangle" else "#2b2b2b")
-        )
-        btn_rect.pack(side="left", padx=5)
-        
-        btn_circle = ctk.CTkButton(
-            toolbar, text="Circle", width=80, height=30,
-            command=lambda: setattr(editor, 'tool', 'circle'),
-            fg_color=("#E63946" if editor.tool == "circle" else "#2b2b2b")
-        )
-        btn_circle.pack(side="left", padx=5)
-        
-        btn_crop = ctk.CTkButton(
-            toolbar, text="Crop", width=80, height=30,
-            command=lambda: setattr(editor, 'tool', 'crop'),
-            fg_color=("#E63946" if editor.tool == "crop" else "#2b2b2b")
-        )
-        btn_crop.pack(side="left", padx=5)
-        
-        # Color selection
-        color_frame = ctk.CTkFrame(toolbar)
-        color_frame.pack(side="right", padx=10)
-        
-        color_label = ctk.CTkLabel(color_frame, text="Color:", font=("Roboto", 10))
-        color_label.pack(side="left", padx=5)
+        color_label.pack(side="left", padx=(0, 8))
         
         colors = ["#E63946", "#F77F00", "#FCBF49", "#2a9d8f", "#264653", "#000000", "#FFFFFF"]
+        editor.color_buttons = []
+        editor.color_list = colors  # Store for later use
         for color in colors:
             btn_color = ctk.CTkButton(
-                color_frame, text="", width=25, height=25,
-                fg_color=color, hover_color=color,
-                command=lambda c=color: setattr(editor, 'pen_color', c)
+                color_section,
+                text="",
+                width=28,
+                height=28,
+                fg_color=color,
+                hover_color=color,
+                command=lambda c=color: self.set_color(editor, c),
+                corner_radius=14,
+                border_width=2 if color == editor.pen_color else 0,
+                border_color="#FFFFFF" if color in ["#000000", "#264653"] else "#000000"
             )
-            btn_color.pack(side="left", padx=2)
+            btn_color.pack(side="left", padx=3)
+            editor.color_buttons.append(btn_color)
         
-        # Canvas for drawing
-        canvas_frame = ctk.CTkFrame(editor)
-        canvas_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        # Update color indicators
+        self.update_color_indicator(editor)
+        
+        # Canvas for drawing with status bar
+        canvas_container = ctk.CTkFrame(editor)
+        canvas_container.pack(fill="both", expand=True, padx=15, pady=(0, 10))
+        
+        canvas_frame = ctk.CTkFrame(canvas_container)
+        canvas_frame.pack(fill="both", expand=True)
         
         editor.canvas = tk.Canvas(
             canvas_frame,
@@ -397,7 +493,20 @@ class SnippingTool(ctk.CTk):
             bg="#1a1a1a",
             highlightthickness=0
         )
-        editor.canvas.pack(expand=True)
+        editor.canvas.pack(expand=True, fill="both")
+        
+        # Status bar showing tool and dimensions
+        status_bar = ctk.CTkFrame(canvas_container, height=25, fg_color="#2b2b2b")
+        status_bar.pack(fill="x", pady=(5, 0))
+        status_bar.pack_propagate(False)
+        
+        editor.status_label = ctk.CTkLabel(
+            status_bar,
+            text=f"Tool: {editor.tool.title()} | Color: {editor.pen_color} | Size: {image.size[0]}x{image.size[1]}",
+            font=("Roboto", 9),
+            text_color="gray"
+        )
+        editor.status_label.pack(side="left", padx=10)
         
         # Display image on canvas
         editor.tk_image = ImageTk.PhotoImage(display_image)
@@ -409,34 +518,118 @@ class SnippingTool(ctk.CTk):
         editor.canvas.bind("<B1-Motion>", lambda e: self.on_editor_mouse_drag(e, editor))
         editor.canvas.bind("<ButtonRelease-1>", lambda e: self.on_editor_mouse_up(e, editor))
         
-        # Action Buttons
+        # Action Buttons Frame
         btn_frame = ctk.CTkFrame(editor)
-        btn_frame.pack(fill="x", padx=10, pady=10)
+        btn_frame.pack(fill="x", padx=15, pady=10)
+        btn_frame.grid_columnconfigure(0, weight=1)
         
-        btn_extract_text = ctk.CTkButton(
-            btn_frame, text="Extract Text (OCR)",
-            command=lambda: self.extract_text_from_image(editor.draw_image, editor=editor),
-            fg_color="#2a9d8f", hover_color="#1e7d72"
-        )
-        btn_extract_text.pack(side="left", padx=10)
+        # Left side - Advanced Actions
+        left_actions = ctk.CTkFrame(btn_frame, fg_color="transparent")
+        left_actions.grid(row=0, column=0, sticky="w", padx=10, pady=10)
+        
+        if PYTESSERACT_AVAILABLE:
+            btn_extract_text = ctk.CTkButton(
+                left_actions,
+                text="🔍 Extract Text (OCR)",
+                command=lambda: self.extract_text_from_image(editor.draw_image, editor=editor),
+                fg_color="#2a9d8f",
+                hover_color="#1e7d72",
+                font=("Roboto", 11),
+                width=160,
+                height=35
+            )
+            btn_extract_text.pack(side="left", padx=(0, 8))
+        else:
+            btn_extract_text_disabled = ctk.CTkButton(
+                left_actions,
+                text="🔍 Extract Text (OCR) - Unavailable",
+                fg_color="gray",
+                state="disabled",
+                font=("Roboto", 11),
+                width=240,
+                height=35
+            )
+            btn_extract_text_disabled.pack(side="left", padx=(0, 8))
         
         btn_copy = ctk.CTkButton(
-            btn_frame, text="Copy to Clipboard",
-            command=lambda: self.copy_to_clipboard(editor.draw_image, editor=editor)
+            left_actions,
+            text="📋 Copy Image",
+            command=lambda: self.copy_to_clipboard(editor.draw_image, editor=editor),
+            font=("Roboto", 11),
+            width=120,
+            height=35
         )
-        btn_copy.pack(side="left", padx=10)
+        btn_copy.pack(side="left", padx=(0, 8))
         
         btn_save = ctk.CTkButton(
-            btn_frame, text="Save to File",
-            command=lambda: self.save_to_file(editor.draw_image, editor=editor)
+            left_actions,
+            text="💾 Save to File",
+            command=lambda: self.save_to_file(editor.draw_image, editor=editor),
+            font=("Roboto", 11),
+            width=120,
+            height=35
         )
-        btn_save.pack(side="left", padx=10)
+        btn_save.pack(side="left")
+        
+        # Right side - Close button
+        right_actions = ctk.CTkFrame(btn_frame, fg_color="transparent")
+        right_actions.grid(row=0, column=1, sticky="e", padx=10, pady=10)
         
         btn_close = ctk.CTkButton(
-            btn_frame, text="Close", fg_color="gray",
-            command=lambda: [editor.destroy(), self.deiconify()]
+            right_actions,
+            text="✖ Close",
+            fg_color="gray",
+            hover_color="#5a5a5a",
+            command=lambda: [editor.destroy(), self.deiconify()],
+            font=("Roboto", 11),
+            width=100,
+            height=35
         )
-        btn_close.pack(side="right", padx=10)
+        btn_close.pack(side="right")
+        
+        # Bind keyboard shortcuts
+        editor.bind("<Control-s>", lambda e: self.save_to_file(editor.draw_image, editor=editor))
+        editor.bind("<Control-c>", lambda e: self.copy_to_clipboard(editor.draw_image, editor=editor))
+        editor.bind("<Escape>", lambda e: [editor.destroy(), self.deiconify()])
+
+    def set_tool(self, editor, tool_name):
+        """Sets the active tool and updates button highlighting."""
+        editor.tool = tool_name
+        # Update all tool button colors
+        for tool, btn in editor.tool_buttons.items():
+            if tool == tool_name:
+                btn.configure(fg_color="#E63946", hover_color="#D62828")
+            else:
+                btn.configure(fg_color="#2b2b2b", hover_color="#3a3a3a")
+        # Update status bar
+        if hasattr(editor, 'status_label'):
+            img_size = editor.draw_image.size
+            editor.status_label.configure(
+                text=f"Tool: {tool_name.title()} | Color: {editor.pen_color} | Size: {img_size[0]}x{img_size[1]}"
+            )
+    
+    def set_color(self, editor, color):
+        """Sets the pen color and updates indicator."""
+        editor.pen_color = color
+        self.update_color_indicator(editor)
+        # Update status bar
+        if hasattr(editor, 'status_label'):
+            img_size = editor.draw_image.size
+            editor.status_label.configure(
+                text=f"Tool: {editor.tool.title()} | Color: {color} | Size: {img_size[0]}x{img_size[1]}"
+            )
+    
+    def update_color_indicator(self, editor):
+        """Updates visual indicator for selected color."""
+        if hasattr(editor, 'color_buttons') and editor.color_buttons:
+            colors = getattr(editor, 'color_list', ["#E63946", "#F77F00", "#FCBF49", "#2a9d8f", "#264653", "#000000", "#FFFFFF"])
+            for btn, color in zip(editor.color_buttons, colors):
+                if color == editor.pen_color:
+                    # Highlight selected color with border
+                    border_color = "#FFFFFF" if color in ["#000000", "#264653"] else "#000000"
+                    btn.configure(border_width=2, border_color=border_color)
+                else:
+                    btn.configure(border_width=0)
 
     def on_editor_mouse_down(self, event, editor):
         """Handles mouse down in editor."""
