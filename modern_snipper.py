@@ -24,6 +24,16 @@ except ImportError:
     print("Warning: pygetwindow not installed. Window Snip will be disabled.")
     print("Install with: pip install pygetwindow")
 
+# Import pytesseract for OCR text extraction
+try:
+    import pytesseract  # type: ignore[import-untyped]
+    PYTESSERACT_AVAILABLE = True
+except ImportError:
+    PYTESSERACT_AVAILABLE = False
+    print("Warning: pytesseract not installed. OCR text extraction will be disabled.")
+    print("Install with: pip install pytesseract")
+    print("Also install Tesseract OCR from: https://github.com/UB-Mannheim/tesseract/wiki")
+
 # Configuration for the Modern UI
 ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -34,7 +44,7 @@ class SnippingTool(ctk.CTk):
         super().__init__()
 
         # --- Main Window Setup ---
-        self.title("PySnip Pro")
+        self.title("Clippr")
         self.geometry("350x280")
         self.resizable(False, False)
         self.attributes('-topmost', True)  # Keep the tool floating above others
@@ -42,7 +52,7 @@ class SnippingTool(ctk.CTk):
         # --- UI Components ---
         self.grid_columnconfigure(0, weight=1)
         
-        self.lbl_title = ctk.CTkLabel(self, text="PySnip Pro", font=("Roboto Medium", 22))
+        self.lbl_title = ctk.CTkLabel(self, text="Clippr", font=("Roboto Medium", 22))
         self.lbl_title.grid(row=0, column=0, pady=(15, 10))
 
         # Snip Type Selection
@@ -277,7 +287,7 @@ class SnippingTool(ctk.CTk):
     def show_editor_window(self, image):
         """Opens the editor window with drawing tools, shapes, and crop."""
         editor = ctk.CTkToplevel(self)
-        editor.title("Snip Editor - PySnip Pro")
+        editor.title("Snip Editor - Clippr")
         editor.geometry("900x700")
         
         # Store image reference
@@ -402,6 +412,13 @@ class SnippingTool(ctk.CTk):
         # Action Buttons
         btn_frame = ctk.CTkFrame(editor)
         btn_frame.pack(fill="x", padx=10, pady=10)
+        
+        btn_extract_text = ctk.CTkButton(
+            btn_frame, text="Extract Text (OCR)",
+            command=lambda: self.extract_text_from_image(editor.draw_image, editor=editor),
+            fg_color="#2a9d8f", hover_color="#1e7d72"
+        )
+        btn_extract_text.pack(side="left", padx=10)
         
         btn_copy = ctk.CTkButton(
             btn_frame, text="Copy to Clipboard",
@@ -636,6 +653,148 @@ class SnippingTool(ctk.CTk):
                 pass
             else:
                 self.lbl_status.configure(text="Copy failed", text_color="#E63946")
+
+    def extract_text_from_image(self, image, editor=None):
+        """Extracts text from image using OCR (Optical Character Recognition)."""
+        if not PYTESSERACT_AVAILABLE:
+            messagebox.showerror(
+                "Error",
+                "pytesseract is not installed.\n\n"
+                "Install it with: pip install pytesseract\n\n"
+                "Also install Tesseract OCR executable from:\n"
+                "https://github.com/UB-Mannheim/tesseract/wiki\n\n"
+                "After installation, you may need to set the Tesseract path:\n"
+                "pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'"
+            )
+            return
+        
+        try:
+            # Show progress
+            progress_window = ctk.CTkToplevel(self)
+            progress_window.title("OCR Processing")
+            progress_window.geometry("400x150")
+            progress_window.attributes('-topmost', True)
+            progress_window.resizable(False, False)
+            
+            progress_label = ctk.CTkLabel(
+                progress_window,
+                text="Extracting text from image...",
+                font=("Roboto", 12)
+            )
+            progress_label.pack(expand=True, pady=20)
+            
+            def process_ocr():
+                try:
+                    # Convert image to RGB if needed
+                    if image.mode != 'RGB':
+                        ocr_image = image.convert('RGB')
+                    else:
+                        ocr_image = image.copy()
+                    
+                    # Perform OCR
+                    extracted_text = pytesseract.image_to_string(ocr_image)
+                    progress_window.destroy()
+                    
+                    # Display results in a new window
+                    self.show_text_results(extracted_text)
+                    
+                except Exception as e:
+                    progress_window.destroy()
+                    error_msg = str(e)
+                    if "tesseract" in error_msg.lower() or "not found" in error_msg.lower():
+                        messagebox.showerror(
+                            "Tesseract Not Found",
+                            "Tesseract OCR executable not found.\n\n"
+                            "Please install Tesseract OCR from:\n"
+                            "https://github.com/UB-Mannheim/tesseract/wiki\n\n"
+                            "Or set the path manually:\n"
+                            "pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'"
+                        )
+                    else:
+                        messagebox.showerror("OCR Error", f"Failed to extract text:\n{error_msg}")
+            
+            progress_window.after(100, process_ocr)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"OCR processing failed:\n{str(e)}")
+
+    def show_text_results(self, text):
+        """Displays extracted text in a window with copy functionality."""
+        text_window = ctk.CTkToplevel(self)
+        text_window.title("Extracted Text - Clippr")
+        text_window.geometry("700x500")
+        text_window.attributes('-topmost', True)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            text_window,
+            text="Extracted Text",
+            font=("Roboto", 16, "bold")
+        )
+        title_label.pack(pady=10)
+        
+        # Text display (scrollable)
+        text_frame = ctk.CTkScrollableFrame(text_window)
+        text_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        # Display text
+        if text.strip():
+            text_display = ctk.CTkTextbox(text_frame, width=650, height=350, wrap="word")
+            text_display.pack(fill="both", expand=True)
+            text_display.insert("1.0", text)
+            text_display.configure(state="disabled")
+            text_window.extracted_text = text
+        else:
+            no_text_label = ctk.CTkLabel(
+                text_frame,
+                text="No text found in the image.",
+                font=("Roboto", 12),
+                text_color="gray"
+            )
+            no_text_label.pack(expand=True)
+            text_window.extracted_text = ""
+        
+        # Action buttons
+        btn_frame = ctk.CTkFrame(text_window)
+        btn_frame.pack(fill="x", padx=20, pady=10)
+        
+        if text.strip():
+            btn_copy_text = ctk.CTkButton(
+                btn_frame,
+                text="Copy Text to Clipboard",
+                command=lambda: self.copy_text_to_clipboard(text, text_window),
+                fg_color="#2a9d8f"
+            )
+            btn_copy_text.pack(side="left", padx=10)
+        
+        btn_close = ctk.CTkButton(
+            btn_frame,
+            text="Close",
+            fg_color="gray",
+            command=text_window.destroy
+        )
+        btn_close.pack(side="right", padx=10)
+
+    def copy_text_to_clipboard(self, text, window=None):
+        """Copies text to clipboard."""
+        try:
+            if WIN32_AVAILABLE:
+                # Use win32clipboard for text
+                win32clipboard.OpenClipboard()
+                win32clipboard.EmptyClipboard()
+                win32clipboard.SetClipboardData(win32clipboard.CF_UNICODETEXT, text)
+                win32clipboard.CloseClipboard()
+            else:
+                # Fallback to tkinter clipboard
+                self.clipboard_clear()
+                self.clipboard_append(text)
+                self.update()
+            
+            messagebox.showinfo("Success", "Text copied to clipboard!")
+            if window:
+                window.destroy()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to copy text:\n{str(e)}")
 
     def save_to_file(self, image, editor=None):
         """Saves the image to a file."""
