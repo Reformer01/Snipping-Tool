@@ -2,9 +2,7 @@
 
 A modern, feature-rich snipping tool built with Python that demonstrates clean architecture, modern UI design, deep OS integration, and AI-powered text extraction.
 
-## 🎯 Portfolio Highlights
-
-This project showcases critical software engineering principles:
+##  Portfolio Highlights
 
 ### 1. Clean Architecture (OOP)
 - **Object-Oriented Design**: The `SnippingTool` class inherits from `CTk` (CustomTkinter), encapsulating all state management (coordinates, image data) within the class instance
@@ -22,7 +20,7 @@ This project showcases critical software engineering principles:
 - **OCR Text Extraction**: AI-powered optical character recognition using Tesseract OCR
 - **Comprehensive Editor**: Drawing tools, shapes, crop, and annotation capabilities
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **GUI**: `customtkinter` - Modern, dark-mode UI framework
 - **Image Processing**: `Pillow` (PIL) - Screen capture and image manipulation
@@ -30,7 +28,7 @@ This project showcases critical software engineering principles:
 - **Window Capture**: `pygetwindow` - Active window detection and capture
 - **OCR**: `pytesseract` - Text extraction from images using Google Tesseract
 
-## 📦 Installation
+## Installation
 
 ### 1. Install Python Dependencies
 ```bash
@@ -53,9 +51,7 @@ pip install customtkinter Pillow pywin32 pygetwindow pytesseract
    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
    ```
 
-**Note:** The application will work without Tesseract, but OCR functionality will be disabled.
-
-## 🚀 Usage
+## Usage
 
 Run the application:
 ```bash
@@ -93,7 +89,7 @@ python modern_snipper.py
    - **Copy**: Copy edited image to clipboard
    - **Save**: Save as PNG or JPG with timestamp
 
-## 📝 Key Technical Challenges Solved
+## Key Technical Challenges Solved
 
 ### Clipboard Integration
 Python doesn't handle binary image data on the clipboard natively. The solution involves:
@@ -122,7 +118,7 @@ Python doesn't handle binary image data on the clipboard natively. The solution 
 - Memory management to prevent garbage collection issues
 - Multi-layer drawing system (shapes, annotations, crop)
 
-## 🎨 Customization
+## Customization
 
 ### Adding an Icon
 To add a custom icon, place a `scissors.ico` file in the project directory and add this line in `__init__`:
@@ -142,9 +138,7 @@ This creates a portable application that runs without a terminal window.
 
 **Note:** For OCR functionality in the executable, you may need to bundle Tesseract OCR or provide installation instructions.
 
-## 📊 Architecture Discussion Points
-
-When presenting this in interviews or portfolios, emphasize:
+## Architecture Discussion Points
 
 1. **Design Patterns**: Class-based architecture with clear method responsibilities
 2. **Error Handling**: Comprehensive try-except blocks with user-friendly error messages
@@ -153,33 +147,33 @@ When presenting this in interviews or portfolios, emphasize:
 5. **AI Integration**: OCR text extraction demonstrates integration with external AI engines
 6. **Modular Design**: Optional dependencies (pygetwindow, pytesseract) with graceful degradation
 
-## ✨ Feature Highlights
+## Features
 
 ### Essential Features
-- ✅ Rectangular Snip
-- ✅ Window Snip
-- ✅ Fullscreen Snip
-- ✅ Clipboard Auto-Copy
-- ✅ File Save (PNG/JPG)
+- Rectangular Snip
+- Window Snip
+- Fullscreen Snip
+- Clipboard Auto-Copy
+- File Save (PNG/JPG)
 
 ### Editor Features (Pro Layer)
-- ✅ Pen & Highlighter Tools
-- ✅ Shapes (Arrows, Rectangles, Circles)
-- ✅ Crop Tool
-- ✅ Delay Timer (3s, 5s, 10s)
+- Pen & Highlighter Tools
+- Shapes (Arrows, Rectangles, Circles)
+- Crop Tool
+- Delay Timer (3s, 5s, 10s)
 
 ### Portfolio Star Features (AI & Advanced)
-- ✅ **OCR Text Extraction** - Extract and copy text from any image
-- 🔄 Redaction (future enhancement)
-- 🔄 Screen Recording (future enhancement)
+-  **OCR Text Extraction** - Extract and copy text from any image
+-  Redaction (future enhancement)
+-  Screen Recording (future enhancement)
 
-## 🐛 Known Limitations
+## Limitations
 
 - Windows-only (due to `pywin32` dependency for clipboard)
 - OCR requires separate Tesseract installation
 - Single monitor support (can be extended for multi-monitor setups)
 
-## 📄 License
+## License
 
 This project is for portfolio and personal use.
 
